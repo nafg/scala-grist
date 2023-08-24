@@ -154,7 +154,7 @@ object Models {
                   "fontBold",
                   "height"
                 )
-              if (extra.isEmpty)
+              if (extra.nonEmpty)
                 Console.err.println(s"WidgetOptions: Warning, unknown keys: ${extra.mkString(", ")}, json: $json")
               deriveDecoder[WidgetOptions]
                 .decodeJson(json)

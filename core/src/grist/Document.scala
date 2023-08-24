@@ -1,6 +1,7 @@
 package grist
 
-import cats.implicits.{toShow, toTraverseOps}
+import cats.data.Validated
+import cats.implicits.{toFunctorFilterOps, toShow}
 import io.circe.*
 import io.circe.syntax.EncoderOps
 import zio.{Task, ZIO}
@@ -17,20 +18,18 @@ class Document(gristClient: GristClient, docId: String) extends DocumentBase {
     )(implicit decoder: Decoder[A]): Task[List[Record[A]]] =
       for {
         records <- tableApi.records.list(filter)
-        records <- ZIO.fromEither(
-                     records.records
-                       .traverse({ case Models.Record(id, fields) =>
-                         decoder
-                           .decodeAccumulating(HCursor.fromJson(fields.asJson))
-                           .map(a => Record(id, a))
-                       })
-                       .leftMap { failures =>
-                         failures.toList.foreach(e => Console.err.println(e.show))
-                         failures.head
-                       }
-                       .toEither
-                   )
-      } yield records
+        res     <- ZIO.foreach(records.records) { case Models.Record(id, fields) =>
+                     val json = fields.asJson
+                     decoder.decodeAccumulating(HCursor.fromJson(json)) match {
+                       case Validated.Valid(a)          => ZIO.some(Record(id, a))
+                       case Validated.Invalid(failures) =>
+                         ZIO.foreachDiscard(failures.toList) { e =>
+                           ZIO.logError(s"${e.show}, original JSON: ${json.spaces2}")
+                         } *>
+                           ZIO.none
+                     }
+                   }
+      } yield res.flattenOption
 
     override def getRecordsById(ids: Set[Reference[A]])(implicit decoder: Decoder[A]): Task[List[Record[A]]] =
       if (ids.isEmpty)

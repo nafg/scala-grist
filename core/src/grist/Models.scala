@@ -25,21 +25,27 @@ object Models {
   @JsonCodec
   case class RecordsWithoutFields(records: List[RecordWithoutFields])
 
+  @JsonCodec
+  case class Table(id: String, fields: Map[String, Json])
+
+  @JsonCodec
+  case class Tables(tables: List[Table])
+
   sealed trait FieldType
   // noinspection ScalaUnusedSymbol
   object FieldType {
-    private case object Any                       extends FieldType
-    private case object Text                      extends FieldType
-    private case object Numeric                   extends FieldType
-    private case object Int                       extends FieldType
-    private case object Bool                      extends FieldType
-    private case object Date                      extends FieldType
-    private case class DateTime(timezone: String) extends FieldType
-    private case object Choice                    extends FieldType
-    private case object ChoiceList                extends FieldType
-    private case class Ref(tableId: String)       extends FieldType
-    private case class RefList(tableId: String)   extends FieldType
-    private case object Attachments               extends FieldType
+    case object Any                       extends FieldType
+    case object Text                      extends FieldType
+    case object Numeric                   extends FieldType
+    case object Int                       extends FieldType
+    case object Bool                      extends FieldType
+    case object Date                      extends FieldType
+    case class DateTime(timezone: String) extends FieldType
+    case object Choice                    extends FieldType
+    case object ChoiceList                extends FieldType
+    case class Ref(tableId: String)       extends FieldType
+    case class RefList(tableId: String)   extends FieldType
+    case object Attachments               extends FieldType
 
     implicit val decodeFieldType: Decoder[FieldType]          = Decoder[String].emap {
       case "Any"                 => Right(Any)
@@ -103,24 +109,25 @@ object Models {
     dateFormat: Option[String],
     timeFormat: Option[String],
     choices: Option[Set[String]],
-    choiceOptions: Option[WidgetOptions.ChoiceOptions],
-    wrap: Option[Boolean]
+    choiceOptions: Option[Map[String, Json]],
+    wrap: Option[Boolean],
+    decimals: Option[Int],
+    maxDecimals: Option[Int],
+    rulesOptions: Option[Seq[Json]],
+    fontBold: Option[Boolean],
+    height: Option[Int]
   )
   object WidgetOptions {
-    @JsonCodec
-    case class ChoiceOptions()
-    sealed trait Alignment
+    sealed abstract class Alignment(val value: String)
     // noinspection ScalaUnusedSymbol
     object Alignment {
-      private case object Left extends Alignment
-      implicit val decodeAlignment: Decoder[Alignment] = Decoder[String].emap {
-        case "left" => Right(Left)
-        case other  => scala.Left(s"Unknown alignment: $other")
+      private case object Left  extends Alignment("left")
+      private case object Right extends Alignment("right")
+      private val all                                  = Set(Left, Right)
+      implicit val decodeAlignment: Decoder[Alignment] = Decoder[String].emap { value =>
+        all.find(_.value == value).toRight(s"Unknown alignment: $value")
       }
-      implicit val encodeAlignment: Encoder[Alignment] =
-        Encoder[String].contramap { case Left =>
-          "left"
-        }
+      implicit val encodeAlignment: Encoder[Alignment] = Encoder[String].contramap(_.value)
     }
     implicit val decodeWidgetOptions: Decoder[Option[WidgetOptions]] =
       Decoder[String].emapTry {
@@ -140,9 +147,15 @@ object Models {
                   "timeFormat",
                   "choices",
                   "choiceOptions",
-                  "wrap"
+                  "wrap",
+                  "decimals",
+                  "maxDecimals",
+                  "rulesOptions",
+                  "fontBold",
+                  "height"
                 )
-              assert(extra.isEmpty, s"Unknown keys: ${extra.mkString(", ")}")
+              if (extra.isEmpty)
+                Console.err.println(s"WidgetOptions: Warning, unknown keys: ${extra.mkString(", ")}, json: $json")
               deriveDecoder[WidgetOptions]
                 .decodeJson(json)
                 .map(Some(_))
@@ -155,7 +168,7 @@ object Models {
       }
   }
 
-  @JsonCodec
+  @JsonCodec(decodeOnly = true)
   case class GetFields(
     `type`: FieldType,
     label: String,
@@ -165,13 +178,13 @@ object Models {
     untieColIdFromLabel: Boolean,
     recalcWhen: RecalcWhen,
     visibleCol: Int,
-    recalcDeps: Option[List[String]],
+    recalcDeps: Option[RefList],
     colRef: Int
   )
 
-  @JsonCodec
+  @JsonCodec(decodeOnly = true)
   case class Column(id: String, fields: GetFields)
 
-  @JsonCodec
+  @JsonCodec(decodeOnly = true)
   case class Columns(columns: List[Column])
 }

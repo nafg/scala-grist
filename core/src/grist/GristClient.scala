@@ -13,6 +13,8 @@ class GristClient(client: Client) extends Api(client) {
       object tables extends WithPath("tables") {
         def apply(tableName: String) = new TableApi(tableName)
 
+        def list = get[Models.Tables]()
+
         class TableApi(tableName: String) extends WithPath(tableName) {
           object records extends WithPath("records") {
             def list(filter: Map[String, Set[Json]]): Task[Models.Records] =

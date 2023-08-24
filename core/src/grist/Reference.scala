@@ -1,7 +1,7 @@
 package grist
 
 import cats.implicits.toInvariantOps
-import io.circe.{Codec, Decoder, Encoder, Json}
+import io.circe.{Codec, Decoder, Encoder}
 
 //noinspection ScalaUnusedSymbol
 case class Reference[A](id: Int) extends AnyVal {
@@ -14,12 +14,8 @@ object Reference {
   implicit def codecRef[A]: Codec[Reference[A]] = Codec.from(Decoder[Int], Encoder[Int]).imap(Reference[A])(_.id)
 
   implicit def decodeSeqRef[A]: Decoder[Seq[Reference[A]]] =
-    Decoder[Option[Seq[Int]]]
-      .prepare { cursor =>
-        if (cursor.downArray.focus.contains(Json.fromString("L")))
-          cursor.downArray.delete
-        else
-          cursor
-      }
-      .map(_.getOrElse(Nil).map(Reference(_)))
+    Decoder[Option[RefList]].map {
+        case Some(RefList(ids)) => ids.map(Reference(_))
+        case None               => Nil
+    }
 }

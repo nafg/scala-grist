@@ -1,6 +1,6 @@
 package grist
 
-import io.circe.{Decoder, Json}
+import io.circe.{Decoder, Encoder, Json}
 
 case class RefList(ids: Seq[Int]) extends AnyVal
 
@@ -14,4 +14,9 @@ object RefList {
           cursor
       }
       .map(RefList(_))
+
+  implicit val encodeRefList: Encoder[RefList] =
+    Encoder[Seq[Int]]
+      .contramap[RefList](_.ids)
+      .mapJson(_.mapArray(arr => Json.fromString("L") +: arr))
 }

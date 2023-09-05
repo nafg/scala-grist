@@ -102,7 +102,7 @@ object Models {
   }
 
   case class WidgetOptions(
-    widget: String,
+    widget: Option[String],
     isCustomDateFormat: Option[Boolean],
     isCustomTimeFormat: Option[Boolean],
     alignment: Option[WidgetOptions.Alignment],

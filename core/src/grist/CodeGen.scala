@@ -72,9 +72,9 @@ trait CodeGen {
                 columnInfos
                   .map { case ColumnInfo(id, optionType, _) =>
                     val sep = if (id.last.isLetterOrDigit) "" else " "
-                    s"$id$sep: $optionType"
+                    s"$id$sep: $optionType = None"
                   }
-                  .mkString(s"case class $className(", ", ", ")\n") +
+                  .mkString(s"case class $className(\n  ", ",\n  ", "\n)\n") +
                 afterEachClass(className, columnInfos*)
             }
 

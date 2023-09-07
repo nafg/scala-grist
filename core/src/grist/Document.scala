@@ -10,17 +10,15 @@ import zio.{Task, ZIO}
 class Document(gristClient: GristClient, docId: String) extends DocumentBase {
   private def docApi = gristClient.docs(docId)
 
-  case class Table[A](tableName: String) extends TableBase[A] {
+  case class Table[A: Decoder: Encoder](tableName: String) extends TableBase[A] {
     private def tableApi = docApi.tables(tableName)
 
-    override def getRecords(
-      filter: Map[String, Set[Json]] = Map.empty
-    )(implicit decoder: Decoder[A]): Task[List[Record[A]]] =
+    override def getRecords(filter: Map[String, Set[Json]] = Map.empty): Task[List[Record[A]]] =
       for {
         records <- tableApi.records.list(filter)
         res     <- ZIO.foreach(records.records) { case Models.Record(id, fields) =>
                      val json = fields.asJson
-                     decoder.decodeAccumulating(HCursor.fromJson(json)) match {
+                     Decoder[A].decodeAccumulating(HCursor.fromJson(json)) match {
                        case Validated.Valid(a)          => ZIO.some(Record(id, a))
                        case Validated.Invalid(failures) =>
                          ZIO.foreachDiscard(failures.toList) { e =>
@@ -31,20 +29,20 @@ class Document(gristClient: GristClient, docId: String) extends DocumentBase {
                    }
       } yield res.flattenOption
 
-    override def getRecordsById(ids: Set[Reference[A]])(implicit decoder: Decoder[A]): Task[List[Record[A]]] =
+    override def getRecordsById(ids: Set[Reference[A]]): Task[List[Record[A]]] =
       if (ids.isEmpty)
         ZIO.succeed(Nil)
       else
         getRecords(filter = Map("id" -> ids.map(_.asJson)))
 
-    override def getRecordById(id: Reference[A])(implicit decoder: Decoder[A]): Task[A] =
+    override def getRecordById(id: Reference[A]): Task[A] =
       getRecordsById(Set(id))
         .flatMap(response => ZIO.getOrFail(response.lastOption).map(_.fields))
 
-    override def addRecords(records: Seq[A])(implicit encoder: Encoder.AsObject[A]): Task[List[Reference[A]]] =
+    override def addRecords(records: Seq[A]): Task[List[Reference[A]]] =
       for {
         ids <- tableApi.records.add(Models.RecordsWithoutId(records.toList.map { a =>
-                 Models.RecordWithoutId(a.asJsonObject.toMap)
+                 Models.RecordWithoutId(a.asJson.asObject.map(_.toMap).getOrElse(Map.empty))
                }))
       } yield ids.records.map { case Models.RecordWithoutFields(id) =>
         Reference[A](id)

@@ -8,7 +8,7 @@ import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalalib.scalafmt.ScalafmtModule
 
 object core extends ScalaModule with CiReleaseModule with ScalafmtModule {
-  override def scalaVersion = "2.13.11"
+  override def scalaVersion = "2.13.12"
 
   override def scalacOptions =
     super.scalacOptions() ++ Seq(
@@ -22,7 +22,7 @@ object core extends ScalaModule with CiReleaseModule with ScalafmtModule {
     )
 
   override def ivyDeps =
-    Agg(ivy"io.circe::circe-parser:0.14.5", ivy"io.circe::circe-generic:0.14.5", ivy"dev.zio::zio-http:3.0.0-RC2")
+    Agg(ivy"io.circe::circe-parser:0.14.6", ivy"io.circe::circe-generic:0.14.6", ivy"dev.zio::zio-http:3.0.0-RC3")
 
   override def publishVersion: T[String] = T {
     VcsVersion

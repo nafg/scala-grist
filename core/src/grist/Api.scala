@@ -11,7 +11,7 @@ abstract class Api(baseClient: Client) {
     baseClient.contramap[Json](json => Body.fromString(json.noSpaces))
 
   private def withQueryParams[Env, In, Err, Out](client: ZClient[Env, In, Err, Out], queryParams: QueryParams) =
-    client.url(client.url.withQueryParams(queryParams))
+    client.url(client.url.queryParams(queryParams))
 
   private def parse[R: Decoder](client: ZClient[?, ?, ?, ?])(response: Response): Task[R] =
     response.body.asString.flatMap { str =>
@@ -27,15 +27,16 @@ abstract class Api(baseClient: Client) {
       )
     }
 
-  protected def get[R: Decoder](queryParams: QueryParams = QueryParams.empty): Task[R] = {
+  protected def get[R: Decoder](queryParams: QueryParams = QueryParams.empty): Task[R] = ZIO.scoped {
     val client = withQueryParams(baseClient, queryParams)
-    client.get.flatMap(parse[R](client))
+    client.get("").flatMap(parse[R](client))
   }
 
-  protected def post[P: Encoder, R: Decoder](body: P, queryParams: QueryParams = QueryParams.empty): Task[R] = {
-    val client = withQueryParams(jsonClient, queryParams)
-    client.post("", body.asJson).flatMap(parse[R](client))
-  }
+  protected def post[P: Encoder, R: Decoder](body: P, queryParams: QueryParams = QueryParams.empty): Task[R] =
+    ZIO.scoped {
+      val client = withQueryParams(jsonClient, queryParams)
+      client.post("")(body.asJson).flatMap(parse[R](client))
+    }
 
   abstract class WithPath(suffix: String) extends Api(baseClient.path(suffix))
 }

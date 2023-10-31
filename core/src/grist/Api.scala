@@ -38,5 +38,5 @@ abstract class Api(baseClient: Client) {
       client.post("")(body.asJson).flatMap(parse[R](client))
     }
 
-  abstract class WithPath(suffix: String) extends Api(baseClient.path(suffix))
+  abstract class WithPath(suffix: String) extends Api(baseClient.addPath(suffix))
 }

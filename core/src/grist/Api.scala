@@ -2,13 +2,13 @@ package grist
 
 import cats.implicits.toShow
 import io.circe.syntax.EncoderOps
-import io.circe.{Decoder, Encoder, Json, jawn}
+import io.circe.*
 import zio.http.*
 import zio.{Task, ZIO}
 
 abstract class Api(baseClient: Client) {
-  private val jsonClient =
-    baseClient.contramap[Json](json => Body.fromString(json.noSpaces))
+  private val printer    = Printer.noSpaces.copy(dropNullValues = true)
+  private val jsonClient = baseClient.contramap[Json](json => Body.fromString(printer.print(json)))
 
   private def withQueryParams[Env, In, Err, Out](client: ZClient[Env, In, Err, Out], queryParams: QueryParams) =
     client.url(client.url.queryParams(queryParams))

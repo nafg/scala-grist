@@ -24,6 +24,8 @@ object core extends ScalaModule with CiReleaseModule with ScalafmtModule {
   override def ivyDeps =
     Agg(ivy"io.circe::circe-parser:0.14.6", ivy"io.circe::circe-generic:0.14.6", ivy"dev.zio::zio-http:3.0.0-RC3")
 
+  override def artifactName = "grist-core"
+
   override def publishVersion: T[String] = T {
     VcsVersion
       .vcsState()

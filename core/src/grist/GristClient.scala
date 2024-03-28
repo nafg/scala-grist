@@ -40,21 +40,19 @@ class GristClient(client: Client) extends Api(client) {
   }
 }
 
+//noinspection ScalaWeakerAccess
 object GristClient {
-  def apply(teamName: String, apiToken: String): ZLayer[Client, Nothing, GristClient] =
+  def forDomain(domain: String, apiToken: String): ZLayer[Client, Nothing, GristClient] =
     ZLayer.fromFunction { (client: Client) =>
       new GristClient(
         client
-          .url(
-            URL(
-              kind = URL.Location
-                .Absolute(Scheme.HTTPS, s"$teamName.getgrist.com", 443),
-              path = Path.root / "api"
-            )
-          )
+          .url(URL(kind = URL.Location.Absolute(Scheme.HTTPS, domain, 443), path = Path.root / "api"))
           .addHeaders(Headers(Header.Authorization.Bearer(apiToken)))
       )
     }
+
+  def apply(teamName: String, apiToken: String): ZLayer[Client, Nothing, GristClient] =
+    forDomain(s"$teamName.getgrist.com", apiToken)
 
   def client = ZIO.service[GristClient]
 }

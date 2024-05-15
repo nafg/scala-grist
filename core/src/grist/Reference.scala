@@ -15,7 +15,7 @@ object Reference {
 
   implicit def decodeSeqRef[A]: Decoder[Seq[Reference[A]]] =
     Decoder[Option[RefList]].map {
-        case Some(RefList(ids)) => ids.map(Reference(_))
-        case None               => Nil
+      case Some(RefList(ids)) => ids.map(Reference(_))
+      case None               => Nil
     }
 }

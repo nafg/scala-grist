@@ -8,7 +8,7 @@ import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalalib.scalafmt.ScalafmtModule
 
 object core extends ScalaModule with CiReleaseModule with ScalafmtModule {
-  override def scalaVersion = "2.13.12"
+  override def scalaVersion = "2.13.14"
 
   override def scalacOptions =
     super.scalacOptions() ++ Seq(

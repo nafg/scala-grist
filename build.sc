@@ -1,4 +1,4 @@
-import $ivy.`io.chris-kipp::mill-ci-release::0.1.9`
+import $ivy.`io.chris-kipp::mill-ci-release::0.1.10`
 
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.kipp.mill.ci.release.CiReleaseModule

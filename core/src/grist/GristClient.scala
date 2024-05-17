@@ -46,7 +46,7 @@ object GristClient {
     ZLayer.fromFunction { (client: Client) =>
       new GristClient(
         client
-          .url(URL(kind = URL.Location.Absolute(Scheme.HTTPS, domain, 443), path = Path.root / "api"))
+          .url(URL(kind = URL.Location.Absolute(Scheme.HTTPS, domain, None), path = Path.root / "api"))
           .addHeaders(Headers(Header.Authorization.Bearer(apiToken)))
       )
     }

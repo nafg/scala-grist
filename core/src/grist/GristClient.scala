@@ -3,7 +3,8 @@ package grist
 import io.circe.Json
 import io.circe.syntax.EncoderOps
 import zio.http.*
-import zio.{Task, ZIO, ZLayer}
+import zio.stream.UStream
+import zio.{Chunk, Task, ZIO, ZLayer}
 
 class GristClient(client: Client) extends Api(client) {
   object docs extends WithPath("docs") {
@@ -21,13 +22,13 @@ class GristClient(client: Client) extends Api(client) {
               get[Models.Records](QueryParams("filter" -> filter.asJson.noSpaces))
 
             def add(records: Models.RecordsWithoutId): Task[Models.RecordsWithoutFields] =
-              post[Models.RecordsWithoutId, Models.RecordsWithoutFields](records)
+              postJson[Models.RecordsWithoutId, Models.RecordsWithoutFields](records)
           }
 
           object data extends WithPath("data") {
             object delete extends WithPath("delete") {
               def apply(ids: Set[Int]): Task[Unit] =
-                post[Set[Int], Unit](ids)
+                postJson[Set[Int], Unit](ids)
             }
           }
 
@@ -35,6 +36,25 @@ class GristClient(client: Client) extends Api(client) {
             def list = get[Models.Columns]()
           }
         }
+      }
+
+      object attachments extends WithPath("attachments") {
+        def upload(attachments: GristClient.AttachmentInfo*): Task[RefList] =
+          ZIO.scoped {
+            for {
+              body     <- Body.fromMultipartFormUUID(
+                            Form(
+                              Chunk
+                                .from(attachments)
+                                .map { case GristClient.AttachmentInfo(data, mediaType, filename) =>
+                                  FormField.streamingBinaryField("upload", data, mediaType, filename = filename)
+                                }
+                            )
+                          )
+              response <- baseClient.post("")(body)
+              ids      <- parse[Seq[Int]](baseClient)(response)
+            } yield RefList(ids)
+          }
       }
     }
   }
@@ -55,4 +75,6 @@ object GristClient {
     forDomain(s"$teamName.getgrist.com", apiToken)
 
   def client = ZIO.service[GristClient]
+
+  case class AttachmentInfo(data: UStream[Byte], mediaType: MediaType, filename: Option[String] = None)
 }

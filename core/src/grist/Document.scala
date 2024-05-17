@@ -4,6 +4,8 @@ import cats.data.Validated
 import cats.implicits.{toFunctorFilterOps, toShow}
 import io.circe.*
 import io.circe.syntax.EncoderOps
+import zio.http.MediaType
+import zio.stream.UStream
 import zio.{Task, ZIO}
 
 //noinspection ScalaUnusedSymbol
@@ -59,4 +61,7 @@ class Document(gristClient: GristClient, docId: String) extends DocumentBase {
         _ <- tableApi.data.delete(ids.map(_.id))
       } yield ()
   }
+
+  def uploadAttachment(data: UStream[Byte], mediaType: MediaType, filename: Option[String] = None) =
+    docApi.attachments.upload(GristClient.AttachmentInfo(data, mediaType, filename))
 }

@@ -22,7 +22,7 @@ object core extends ScalaModule with CiReleaseModule with ScalafmtModule {
     )
 
   override def ivyDeps =
-    Agg(ivy"io.circe::circe-parser:0.14.7", ivy"io.circe::circe-generic:0.14.6", ivy"dev.zio::zio-http:3.0.0-RC4")
+    Agg(ivy"io.circe::circe-parser:0.14.7", ivy"io.circe::circe-generic:0.14.6", ivy"dev.zio::zio-http:3.0.0-RC6")
 
   override def artifactName = "grist-core"
 

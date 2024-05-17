@@ -10,9 +10,6 @@ abstract class Api(baseClient: Client) {
   private val printer    = Printer.noSpaces.copy(dropNullValues = true)
   private val jsonClient = baseClient.contramap[Json](json => Body.fromString(printer.print(json)))
 
-  private def withQueryParams[Env, In, Err, Out](client: ZClient[Env, In, Err, Out], queryParams: QueryParams) =
-    client.url(client.url.queryParams(queryParams))
-
   private def parse[R: Decoder](client: ZClient[?, ?, ?, ?])(response: Response): Task[R] =
     response.body.asString.flatMap { str =>
       ZIO.fromEither(
@@ -28,13 +25,13 @@ abstract class Api(baseClient: Client) {
     }
 
   protected def get[R: Decoder](queryParams: QueryParams = QueryParams.empty): Task[R] = ZIO.scoped {
-    val client = withQueryParams(baseClient, queryParams)
+    val client = baseClient.addQueryParams(queryParams)
     client.get("").flatMap(parse[R](client))
   }
 
   protected def post[P: Encoder, R: Decoder](body: P, queryParams: QueryParams = QueryParams.empty): Task[R] =
     ZIO.scoped {
-      val client = withQueryParams(jsonClient, queryParams)
+      val client = jsonClient.addQueryParams(queryParams)
       client.post("")(body.asJson).flatMap(parse[R](client))
     }
 

@@ -1,35 +1,50 @@
 package grist
 
-import io.circe.{Decoder, Encoder, Json, parser}
-import io.circe.generic.JsonCodec
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-
 import scala.util.Success
 
+import io.circe.generic.semiauto.{deriveCodec, deriveDecoder, deriveEncoder}
+import io.circe.*
+
 object Models {
-  @JsonCodec
   case class Record(id: Int, fields: Map[String, Json])
+  object Record {
+    implicit val codecModelsRecord: Codec[Record] = deriveCodec[Record]
+  }
 
-  @JsonCodec
   case class Records(records: List[Record])
+  object Records {
+    implicit val codecModelsRecords: Codec[Records] = deriveCodec
+  }
 
-  @JsonCodec
   case class RecordWithoutId(fields: Map[String, Json])
+  object RecordWithoutId {
+    implicit val codecRecordWithoutId: Codec[RecordWithoutId] = deriveCodec
+  }
 
-  @JsonCodec
   case class RecordsWithoutId(records: List[RecordWithoutId])
+  object RecordsWithoutId {
+    implicit val codecRecordsWithoutId: Codec[RecordsWithoutId] = deriveCodec
+  }
 
-  @JsonCodec
   case class RecordWithoutFields(id: Int)
+  object RecordWithoutFields {
+    implicit val codecRecordWithoutFields: Codec[RecordWithoutFields] = deriveCodec
+  }
 
-  @JsonCodec
   case class RecordsWithoutFields(records: List[RecordWithoutFields])
+  object RecordsWithoutFields {
+    implicit val codecRecordsWithoutFields: Codec[RecordsWithoutFields] = deriveCodec
+  }
 
-  @JsonCodec
   case class Table(id: String, fields: Map[String, Json])
+  object Table {
+    implicit val codecTable: Codec[Table] = deriveCodec
+  }
 
-  @JsonCodec
   case class Tables(tables: List[Table])
+  object Tables {
+    implicit val codecTables: Codec[Tables] = deriveCodec
+  }
 
   sealed trait FieldType
   // noinspection ScalaUnusedSymbol
@@ -168,7 +183,6 @@ object Models {
       }
   }
 
-  @JsonCodec(decodeOnly = true)
   case class GetFields(
     `type`: FieldType,
     label: String,
@@ -181,10 +195,17 @@ object Models {
     recalcDeps: Option[RefList],
     colRef: Int
   )
+  object GetFields     {
+    implicit val decodeGetFields: Decoder[GetFields] = deriveDecoder
+  }
 
-  @JsonCodec(decodeOnly = true)
   case class Column(id: String, fields: GetFields)
+  object Column {
+    implicit val decodeColumn: Decoder[Column] = deriveDecoder
+  }
 
-  @JsonCodec(decodeOnly = true)
   case class Columns(columns: List[Column])
+  object Columns {
+    implicit val decodeColumns: Decoder[Columns] = deriveDecoder
+  }
 }

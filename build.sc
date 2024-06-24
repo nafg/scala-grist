@@ -28,7 +28,7 @@ trait CoreModule extends Cross.Module[String] with ScalaModule with CiReleaseMod
       )
 
   override def ivyDeps =
-    Agg(ivy"io.circe::circe-parser:0.14.7", ivy"io.circe::circe-generic:0.14.8", ivy"dev.zio::zio-http:3.0.0-RC8")
+    Agg(ivy"io.circe::circe-parser:0.14.8", ivy"io.circe::circe-generic:0.14.8", ivy"dev.zio::zio-http:3.0.0-RC8")
 
   override def artifactName = "grist-core"
 

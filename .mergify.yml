@@ -1,0 +1,7 @@
+pull_request_rules:
+  - name: Automatic merge
+    conditions:
+      - check-success=test
+      - author=nafg-scala-steward[bot]
+    actions:
+      merge: 

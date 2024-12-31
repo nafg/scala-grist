@@ -1,4 +1,4 @@
-import $ivy.`io.chris-kipp::mill-ci-release::0.1.10`
+import $ivy.`io.chris-kipp::mill-ci-release::0.2.0`
 import $ivy.`io.github.nafg.scalac-options::scalac-options:0.3.0`
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import io.kipp.mill.ci.release.CiReleaseModule

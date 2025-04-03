@@ -56,6 +56,12 @@ class GristClient(client: Client) extends Api(client) {
             } yield RefList(ids)
           }
       }
+
+      def apply(attachmentId: String) = new AttachmentApi(attachmentId)
+
+      class AttachmentApi(id: String) extends WithPath(id) {
+        def download = baseClient.stream(Request.get(baseClient.url))(_.body.asStream)
+      }
     }
   }
 }

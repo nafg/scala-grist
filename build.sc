@@ -39,7 +39,7 @@ trait CoreModule extends Cross.Module[String] with ScalaModule with CiReleaseMod
   }
 
   override def pomSettings = PomSettings(
-    description = "Bundler for Mill",
+    description = "Scala client for the Grist REST API, built on ZIO HTTP and Circe, with typed table access and Scala code generation from a document's schema",
     organization = "io.github.nafg.grist",
     url = "https://github.com/nafg/scala-grist",
     licenses = Seq(License.`Apache-2.0`),
